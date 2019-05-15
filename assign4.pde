@@ -159,13 +159,14 @@ void setup() {
 	// Initialize cabbages and their position
 
     
-    cabbageX = new float[6];
-    cabbageY = new float[6];
-    for(int i=0;i<6;i++){
-    cabbageX[i]=floor(random(8))*80;
-    cabbageY[i]=floor(random(4))*80+i*320;
-    }
-    }
+  cabbageX = new float[6];
+  cabbageY = new float[6];
+
+  for(int i = 0; i < cabbageX.length; i++){
+    cabbageX[i] = SOIL_SIZE * floor(random(SOIL_COL_COUNT));
+    cabbageY[i] = SOIL_SIZE * ( i * 4 + floor(random(4)));
+  }
+}
     
 
 void draw() {
@@ -250,134 +251,135 @@ void draw() {
     image(soldier,soldierX[i]++,soldierY[i]);}
     
     
-		// Groundhog
+   // Groundhog
 
-		PImage groundhogDisplay = groundhogIdle;
+    PImage groundhogDisplay = groundhogIdle;
 
+    // If player is not moving, we have to decide what player has to do next
+    if(playerMoveTimer == 0){
 
+      // HINT:
+      // You can use playerCol and playerRow to get which soil player is currently on
 
-		// If player is not moving, we have to decide what player has to do next
-		if(playerMoveTimer == 0){
+      // Check if "player is NOT at the bottom AND the soil under the player is empty"
+      if(playerRow<23&&soilHealth[playerCol][playerRow+1]<=0){
+      // > If so, then force moving down by setting playerMoveDirection and playerMoveTimer (see downState part below for example)
+          playerMoveDirection = DOWN;
+          playerMoveTimer = playerMoveDuration;      
+      }
 
-			// HINT:
-			// You can use player  Col and playerRow to get which soil player is currently on
-    if(playerRow+1<=22){
-    if(soilHealth[playerCol][playerRow+1]==0){
-    playerMoveDirection = DOWN;
-    playerMoveTimer = playerMoveDuration;
-    
-    }}
-   
-			// Check if "player is NOT at the bottom AND the soil under the player is empty"
-			// > If so, then force moving down by setting playerMoveDirection and playerMoveTimer (see downState part below for example)
-			// > Else then determine player's action based on input state
+      // > Else then determine player's action based on input state
+else{
+      if(leftState){
 
-			if(leftState){
+        groundhogDisplay = groundhogLeft;
 
-				groundhogDisplay = groundhogLeft;
+        // Check left boundary
+        if(playerCol > 0){
 
-				// Check left boundary
-				if(playerCol > 0){
+          // HINT:
+          // Check if "player is NOT above the ground AND there's soil on the left"
+          if(playerRow>=0&&soilHealth[playerCol-1][playerRow]>0){
+          // > If so, dig it and decrease its health
+          soilHealth[playerCol-1][playerRow]--;
+          }
+          // > Else then start moving (set playerMoveDirection and playerMoveTimer)
+          else{
+          playerMoveDirection = LEFT;
+          playerMoveTimer = playerMoveDuration;
+          }
+        }
 
-					// HINT:
-					// Check if "player is NOT above the ground AND there's soil on the left"
-					// > If so, dig it and decrease its health
-					// > Else then start moving (set playerMoveDirection and playerMoveTimer)
+      }else if(rightState){
 
-					playerMoveDirection = LEFT;
-					playerMoveTimer = playerMoveDuration;
+        groundhogDisplay = groundhogRight;
 
-				}
+        // Check right boundary
+        if(playerCol < SOIL_COL_COUNT - 1){
 
-			}else if(rightState){
+          // HINT:
+          // Check if "player is NOT above the ground AND there's soil on the right"
+          if(playerRow>=0&&soilHealth[playerCol+1][playerRow]>0){
+          // > If so, dig it and decrease its health
+          soilHealth[playerCol+1][playerRow]--;
+          }
+          // > Else then start moving (set playerMoveDirection and playerMoveTimer)
+          else{
+          playerMoveDirection = RIGHT;
+          playerMoveTimer = playerMoveDuration;
+          }
+        }
 
-				groundhogDisplay = groundhogRight;
+      }else if(downState){
 
-				// Check right boundary
-				if(playerCol < SOIL_COL_COUNT - 1){
+        groundhogDisplay = groundhogDown;
 
-					// HINT:
-					// Check if "player is NOT above the ground AND there's soil on the right"
-					// > If so, dig it and decrease its health
-					// > Else then start moving (set playerMoveDirection and playerMoveTimer)
+        // Check bottom boundary
 
-					playerMoveDirection = RIGHT;
-					playerMoveTimer = playerMoveDuration;
-
-				}
-
-			}else if(downState){
-
-				groundhogDisplay = groundhogDown;
-
-				// Check bottom boundary
-
-				// HINT:
-				// We have already checked "player is NOT at the bottom AND the soil under the player is empty",
-				// and since we can only get here when the above statement is false,
-				// we only have to check again if "player is NOT at the bottom" to make sure there won't be out-of-bound exception
-				
+        // HINT:
+        // We have already checked "player is NOT at the bottom AND the soil under the player is empty",
+        // and since we can only get here when the above statement is false,
+        // we only have to check again if "player is NOT at the bottom" to make sure there won't be out-of-bound exception
         if(playerRow < SOIL_ROW_COUNT - 1){
 
-					// > If so, dig it and decrease its health
+          // > If so, dig it and decrease its health
+          soilHealth[playerCol][playerRow+1]--;
+          // For requirement #3:
+          // Note that player never needs to move down as it will always fall automatically,
+          // so the following 2 lines can be removed once you finish requirement #3
 
-					// For requirement #3:
-					// Note that player never needs to move down as it will always fall automatically,
-					// so the following 2 lines can be removed once you finish requirement #3
-
-					playerMoveDirection = DOWN;
-					playerMoveTimer = playerMoveDuration;
+//          playerMoveDirection = DOWN;
+//          playerMoveTimer = playerMoveDuration;
 
 
-				}
-			}
+        }
+      }
 
-		}
+    }
+    }
+    // If player is now moving?
+    // (Separated if-else so player can actually move as soon as an action starts)
+    // (I don't think you have to change any of these)
 
-		// If player is now moving?
-		// (Separated if-else so player can actually move as soon as an action starts)
-		// (I don't think you have to change any of these)
+    if(playerMoveTimer > 0){
 
-		if(playerMoveTimer > 0){
+      playerMoveTimer --;
+      switch(playerMoveDirection){
 
-			playerMoveTimer --;
-			switch(playerMoveDirection){
+        case LEFT:
+        groundhogDisplay = groundhogLeft;
+        if(playerMoveTimer == 0){
+          playerCol--;
+          playerX = SOIL_SIZE * playerCol;
+        }else{
+          playerX = (float(playerMoveTimer) / playerMoveDuration + playerCol - 1) * SOIL_SIZE;
+        }
+        break;
 
-				case LEFT:
-				groundhogDisplay = groundhogLeft;
-				if(playerMoveTimer == 0){
-					playerCol--;
-					playerX = SOIL_SIZE * playerCol;
-				}else{
-					playerX = (float(playerMoveTimer) / playerMoveDuration + playerCol - 1) * SOIL_SIZE;
-				}
-				break;
+        case RIGHT:
+        groundhogDisplay = groundhogRight;
+        if(playerMoveTimer == 0){
+          playerCol++;
+          playerX = SOIL_SIZE * playerCol;
+        }else{
+          playerX = (1f - float(playerMoveTimer) / playerMoveDuration + playerCol) * SOIL_SIZE;
+        }
+        break;
 
-				case RIGHT:
-				groundhogDisplay = groundhogRight;
-				if(playerMoveTimer == 0){
-					playerCol++;
-					playerX = SOIL_SIZE * playerCol;
-				}else{
-					playerX = (1f - float(playerMoveTimer) / playerMoveDuration + playerCol) * SOIL_SIZE;
-				}
-				break;
+        case DOWN:
+        groundhogDisplay = groundhogDown;
+        if(playerMoveTimer == 0){
+          playerRow++;
+          playerY = SOIL_SIZE * playerRow;
+        }else{
+          playerY = (1f - float(playerMoveTimer) / playerMoveDuration + playerRow) * SOIL_SIZE;
+        }
+        break;
+      }
 
-				case DOWN:
-				groundhogDisplay = groundhogDown;
-				if(playerMoveTimer == 0){
-					playerRow++;
-					playerY = SOIL_SIZE * playerRow;
-				}else{
-					playerY = (1f - float(playerMoveTimer) / playerMoveDuration + playerRow) * SOIL_SIZE;
-				}
-				break;
-			}
+    }
 
-		}
-
-		image(groundhogDisplay, playerX, playerY);
-
+    image(groundhogDisplay, playerX, playerY);
 		// Soldiers
 		// > Remember to stop player's moving! (reset playerMoveTimer)
 		// > Remember to recalculate playerCol/playerRow when you reset playerX/playerY!
@@ -411,8 +413,12 @@ void draw() {
     //eat cabbage
     for(int i=0;i<6;i++){
     if(playerX < cabbageX[i]+80 && playerX+80 > cabbageX[i] && playerY < cabbageY[i]+80 && playerY+80 > cabbageY[i]){
-    playerHealth+=1;
-    cabbageX[i]=-100;}
+    if(playerHealth<PLAYER_MAX_HEALTH){
+        cabbageX[i]=1000;
+        playerHealth++;
+      }}
+    
+    
     
     //meet sooldier
     if(playerX < soldierX[i]+80 && playerX+80 > soldierX[i] && playerY < soldierY[i]+80 && playerY+80 > soldierY[i] ){
@@ -455,6 +461,8 @@ void draw() {
 				playerRow = (int) (playerY / SOIL_SIZE);
 				playerMoveTimer = 0;
 				playerHealth = 2;
+        
+        soilHealth[4][0]=15;
 
         // Initialize soilHealth
         soilHealth = new int[SOIL_COL_COUNT][SOIL_ROW_COUNT];
@@ -507,10 +515,16 @@ void draw() {
                 
    
       }}
-				// Initialize cabbages and soidiers and their position
-          for(int i=0;i<6;i++){
-          image(cabbage, cabbageX[i],cabbageY[i]);
-          image(soldier,soldierX[i]+=soldierSpeed,soldierY[i]);}
+				       // Initialize soidiers and their position
+        for(int j=0;j<6;j++){
+          soldierX[j]=int(random(8))*SOIL_SIZE;
+          soldierY[j]=(int(random(4))+4*j)*SOIL_SIZE;
+        }
+        // Initialize cabbages and their position
+        for(int j=0;j<6;j++){
+          cabbageX[j]=int(random(8))*SOIL_SIZE;
+          cabbageY[j]=(int(random(4))+4*j)*SOIL_SIZE;
+        } 
           
 
 
