@@ -1,3 +1,4 @@
+
 PImage title, gameover, startNormal, startHovered, restartNormal, restartHovered;
 PImage groundhogIdle, groundhogLeft, groundhogRight, groundhogDown;
 PImage bg, life, cabbage, stone1, stone2, soilEmpty;
